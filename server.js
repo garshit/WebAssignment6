@@ -168,7 +168,7 @@ app.post("/login", (req, res) => {
       res.render("login", { data: userdata, layout: false });
       return;
   }
-    newUser.findOne({ username: userdata.username }, ["firstname", "lastname", "username", "password"]).exec().then((data) => {
+    newUser.findOne({ username: userdata.username }, ["firstname", "lastname", "username", "password"]).exec().then((data2) => {
         bcrypt.compare(userdata.pass, data.password).then((result) => {
             // result === true
             console.log(result);
@@ -185,17 +185,17 @@ app.post("/login", (req, res) => {
                         image: element.image
                     });
                 });
-                res.render("administrator", { firstname: data.firstname, lastname: data.lastname, username: data.username,title: datalog, layout: false });
+                res.render("administrator", { firstname: data2.firstname, lastname: data2.lastname, username: data2.username,title: datalog, layout: false });
            return;
             });
             
         }
         else {
-            res.render("dashboard_user", { firstname: data.firstname, lastname: data.lastname, username: data.username, layout: false });
+            res.render("dashboard_user", { firstname: data2.firstname, lastname: data2.lastname, username: data2.username, layout: false });
             return;
         }
     } else {
-        res.render("login", { error: "password and username incoorect,try again", layout: false });
+        res.render("login", { error: "password and username incorrect,try again", layout: false });
         return;
     }
 });

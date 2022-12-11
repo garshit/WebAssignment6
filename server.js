@@ -10,6 +10,8 @@ var app = express();
 var path =require("path");
 var exphbs = require('express-handlebars');
 var bodyParser = require("body-parser");
+const clientSessions = require("client-sessions");
+var bcrypt = require('bcryptjs');
 var mongoose = require("mongoose");
 var Schema = mongoose.Schema;
 mongoose.connect("mongodb+srv://garshit:mfHeMkKyMeNvZacp@assignment4.jay2pvp.mongodb.net/Assignment4?retryWrites=true&w=majority");
@@ -89,7 +91,20 @@ app.get("/", function(req,res){
     res.sendFile(path.join(__dirname, '/login.html'));
    
 });
-
+app.get("/administrator", (req, res) => {
+    blogs.find().exec().then((data) => {
+        let datalog = new Array;
+        data.forEach(element => {
+            datalog.push({
+                title: element.title,
+                date: element.date,
+                content: element.content,
+                image: element.image
+            });
+        });
+        res.render("administrator", { title: datalog, layout: false });
+    });
+});
 app.post("/create", (req, res) => {
 
     let createArticle = new blogs({
@@ -108,20 +123,7 @@ app.post("/create", (req, res) => {
     
     res.redirect("administrator");
 });
-app.get("/administrator", (req, res) => {
-    blogs.find().exec().then((data) => {
-        let datalog = new Array;
-        data.forEach(element => {
-            datalog.push({
-                title: element.title,
-                date: element.date,
-                content: element.content,
-                image: element.image
-            });
-        });
-        res.render("administrator", { title: datalog, layout: false });
-    });
-});
+
 
 app.post("/admin_article", function (req, res) {
     blogs.findOne({ title: req.body.title }).exec().then((data) => {
@@ -166,11 +168,27 @@ app.post("/login", (req, res) => {
       res.render("login", { data: userdata, layout: false });
       return;
   }
-  newUser.findOne({ username: userdata.username, password: userdata.pass }, ["firstname", "lastname", "username"]).exec().then((data) => {
-    if (data) {
-        if (data.id == "637334404c1dbec03e38862b") {
-            res.render("administrator", { layout: false });
-            return;
+    newUser.findOne({ username: userdata.username }, ["firstname", "lastname", "username", "password"]).exec().then((data) => {
+        bcrypt.compare(userdata.pass, data.password).then((result) => {
+            // result === true
+            console.log(result);
+    
+    if (result) {
+        if (data.id == "6395b5d5d151a71797c11e37") {
+            blogs.find().exec().then((data) => {
+                let datalog = new Array;
+                data.forEach(element => {
+                    datalog.push({
+                        title: element.title,
+                        date: element.date,
+                        content: element.content,
+                        image: element.image
+                    });
+                });
+                res.render("administrator", { firstname: data.firstname, lastname: data.lastname, username: data.username,title: datalog, layout: false });
+           return;
+            });
+            
         }
         else {
             res.render("dashboard_user", { firstname: data.firstname, lastname: data.lastname, username: data.username, layout: false });
@@ -182,7 +200,10 @@ app.post("/login", (req, res) => {
     }
 });
 
+}); 
+
 });
+
 
 app.get("/registration", function(req,res){
   res.sendFile(path.join(__dirname, '/registration.html'));  
@@ -238,7 +259,7 @@ if(userdata.username=="" ||
     res.render("registration", { data: userdata, layout: false });
     return;
   }
-  
+  bcrypt.hash(userdata.password, 10).then(hash => {
   let user = new newUser({
     firstname: userdata.firstname,
     lastname: userdata.lastname,
@@ -247,7 +268,7 @@ if(userdata.username=="" ||
     city: userdata.city,
     postal: userdata.postalcode,
     country: userdata.country,
-    password: userdata.password
+    password: hash
 }).save((e, data) => {
     if (e) {
         console.log(e);
@@ -257,6 +278,7 @@ if(userdata.username=="" ||
 
     }
 });
+  });
   res.render("dashboard_user", {firstname: userdata.firstname, lastname: userdata.lastname, username: userdata.username,layout: false });
   
 });

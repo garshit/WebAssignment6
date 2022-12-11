@@ -169,12 +169,12 @@ app.post("/login", (req, res) => {
       return;
   }
     newUser.findOne({ username: userdata.username }, ["firstname", "lastname", "username", "password"]).exec().then((data2) => {
-        bcrypt.compare(userdata.pass, data.password).then((result) => {
+        bcrypt.compare(userdata.pass, data2.password).then((result) => {
             // result === true
             console.log(result);
     
     if (result) {
-        if (data.id == "6395b5d5d151a71797c11e37") {
+        if (data2.id == "6395b5d5d151a71797c11e37") {
             blogs.find().exec().then((data) => {
                 let datalog = new Array;
                 data.forEach(element => {
